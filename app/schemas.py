@@ -17,4 +17,4 @@ class TransacaoResponse(BaseModel):
     criado_em: datetime
 
     class Config:
-        from_attributes = True
+        from_attributes = True  # permite criar o schema a partir do modelo do banco (SQLAlchemy) usando os atributos do modelo
