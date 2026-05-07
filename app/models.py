@@ -9,4 +9,5 @@ class Transacao(Base):
     descricao = Column(String, nullable=False)
     valor = Column(Float, nullable=False)
     tipo = Column(String, nullable=False)  # "receita" ou "despesa"
+    categoria = Column(String, nullable=True)  # ex: "alimentação", "salário"
     criado_em = Column(DateTime, default=datetime.now)
