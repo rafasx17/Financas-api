@@ -1,3 +1,6 @@
+#main.py — em cada rota, ao invés de buscar todas as transações, busca só as do usuário logado. Ex: db.query(models.Transacao).filter(models.Transacao.usuario_id == usuario.id)
+
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -52,7 +55,7 @@ def criar_transacao(
     db: Session = Depends(get_db),
     usuario: models.Usuario = Depends(get_usuario_atual)
 ):
-    nova = models.Transacao(**transacao.model_dump())
+    nova = models.Transacao(**transacao.model_dump(), usuario_id=usuario.id)
     db.add(nova)
     db.commit()
     db.refresh(nova)
@@ -64,7 +67,7 @@ def listar_transacoes(
     db: Session = Depends(get_db),
     usuario: models.Usuario = Depends(get_usuario_atual)
 ):
-    return db.query(models.Transacao).all()
+    return db.query(models.Transacao).filter(models.Transacao.usuario_id == usuario.id).all()
 
 
 @app.get("/transacoes/tipo/{tipo}", response_model=List[TransacaoResponse])
@@ -73,7 +76,7 @@ def filtrar_por_tipo(
     db: Session = Depends(get_db),
     usuario: models.Usuario = Depends(get_usuario_atual)
 ):
-    return db.query(models.Transacao).filter(models.Transacao.tipo == tipo).all()
+    return db.query(models.Transacao).filter(models.Transacao.usuario_id == usuario.id, models.Transacao.tipo == tipo).all()
 
 
 @app.get("/transacoes/periodo")
@@ -86,6 +89,7 @@ def filtrar_por_periodo(
     data_inicio = datetime.strptime(inicio, "%Y-%m-%d")
     data_fim = datetime.strptime(fim, "%Y-%m-%d")
     return db.query(models.Transacao).filter(
+        models.Transacao.usuario_id == usuario.id,
         models.Transacao.criado_em >= data_inicio,
         models.Transacao.criado_em <= data_fim
     ).all()
@@ -98,7 +102,7 @@ def atualizar_transacao(
     db: Session = Depends(get_db),
     usuario: models.Usuario = Depends(get_usuario_atual)
 ):
-    db_transacao = db.query(models.Transacao).filter(models.Transacao.id == id).first()
+    db_transacao = db.query(models.Transacao).filter(models.Transacao.id == id, models.Transacao.usuario_id == usuario.id).first()
     if not db_transacao:
         raise HTTPException(status_code=404, detail="Transação não encontrada")
     for key, value in transacao.model_dump().items():
@@ -114,7 +118,7 @@ def deletar_transacao(
     db: Session = Depends(get_db),
     usuario: models.Usuario = Depends(get_usuario_atual)
 ):
-    transacao = db.query(models.Transacao).filter(models.Transacao.id == id).first()
+    transacao = db.query(models.Transacao).filter(models.Transacao.id == id, models.Transacao.usuario_id == usuario.id).first()
     if not transacao:
         raise HTTPException(status_code=404, detail="Transação não encontrada")
     db.delete(transacao)
@@ -127,7 +131,7 @@ def calcular_saldo(
     db: Session = Depends(get_db),
     usuario: models.Usuario = Depends(get_usuario_atual)
 ):
-    transacoes = db.query(models.Transacao).all()
+    transacoes = db.query(models.Transacao).filter(models.Transacao.usuario_id == usuario.id).all()
     receitas = sum(t.valor for t in transacoes if t.tipo == "receita")
     despesas = sum(t.valor for t in transacoes if t.tipo == "despesa")
     return {"receitas": receitas, "despesas": despesas, "saldo": receitas - despesas}
