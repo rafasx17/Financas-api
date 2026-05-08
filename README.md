@@ -1,40 +1,46 @@
-# 💰 Finanças API
+# Financas API
 
-API REST para gerenciamento de finanças pessoais, desenvolvida com Python e FastAPI.
+API REST para gerenciamento de financas pessoais com autenticacao JWT e isolamento de dados por usuario.
 
-## 🚀 Tecnologias
-- Python 3.14
+## Stack
+- Python
 - FastAPI
 - SQLAlchemy
 - SQLite
 
-## ⚙️ Como rodar
-
-1. Clone o repositório:
-
-```
+## Como rodar
+```bash
 git clone https://github.com/rafasx17/Financas-api.git
-```
-
-2. Instale as dependências:
-
-```
+cd Financas-api
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-```
-
-3. Rode a API:
-
-```
+cp .env.example .env
 uvicorn app.main:app --reload
 ```
 
-4. Acesse a documentação: http://127.0.0.1:8000/docs
+Docs interativa: `http://127.0.0.1:8000/docs`
 
-## 📌 Endpoints
+## Variaveis de ambiente
+O projeto usa `.env` para configuracao. Exemplo em `.env.example`.
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | /transacoes | Lista todas as transações |
-| POST | /transacoes | Cria uma nova transação |
-| PUT | /transacoes/{id} | Atualiza uma transação |
-| DELETE | /transacoes/{id} | Deleta uma transação |
+- `SECRET_KEY`: chave usada para assinar JWT
+- `ALGORITHM`: algoritmo do JWT (padrao `HS256`)
+- `ACCESS_TOKEN_EXPIRE_MINUTES`: expiracao do token
+- `DATABASE_URL`: URL do banco SQLAlchemy
+
+## Fluxo de autenticacao
+1. `POST /registro` cria usuario.
+2. `POST /login` retorna `access_token`.
+3. Envie `Authorization: Bearer <token>` nas rotas protegidas.
+
+## Endpoints principais
+- `POST /registro`
+- `POST /login`
+- `GET /transacoes`
+- `POST /transacoes`
+- `PUT /transacoes/{id}`
+- `DELETE /transacoes/{id}`
+- `GET /transacoes/tipo/{tipo}`
+- `GET /transacoes/periodo?inicio=YYYY-MM-DD&fim=YYYY-MM-DD`
+- `GET /saldo`

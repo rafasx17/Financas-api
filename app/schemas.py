@@ -1,18 +1,27 @@
-from pydantic import BaseModel
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 
+from pydantic import BaseModel, EmailStr, Field
+
+
+class TipoTransacao(str, Enum):
+    receita = "receita"
+    despesa = "despesa"
+
+
 class TransacaoCreate(BaseModel):
-    descricao: str
-    valor: float
-    tipo: str
-    categoria: Optional[str] = None
+    descricao: str = Field(min_length=3, max_length=120)
+    valor: float = Field(gt=0)
+    tipo: TipoTransacao
+    categoria: Optional[str] = Field(default=None, max_length=60)
+
 
 class TransacaoResponse(BaseModel):
     id: int
     descricao: str
     valor: float
-    tipo: str
+    tipo: TipoTransacao
     categoria: Optional[str] = None
     criado_em: datetime
 
@@ -20,16 +29,18 @@ class TransacaoResponse(BaseModel):
         from_attributes = True
 
 class UsuarioCreate(BaseModel):
-    nome: str
-    email: str
-    senha: str
+    nome: str = Field(min_length=2, max_length=100)
+    email: EmailStr
+    senha: str = Field(min_length=8, max_length=128)
+
 
 class UsuarioResponse(BaseModel):
     id: int
-    email: str
+    email: EmailStr
 
     class Config:
         from_attributes = True
+
 
 class Token(BaseModel):
     access_token: str

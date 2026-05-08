@@ -1,15 +1,12 @@
-#main.py — em cada rota, ao invés de buscar todas as transações, busca só as do usuário logado. Ex: db.query(models.Transacao).filter(models.Transacao.usuario_id == usuario.id)
-
-
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.database import get_db, engine, Base
 from app import models
-from app.schemas import TransacaoCreate, TransacaoResponse, UsuarioCreate
+from app.schemas import Token, TipoTransacao, TransacaoCreate, TransacaoResponse, UsuarioCreate
 from app.auth import hash_senha, verificar_senha, criar_token, get_usuario_atual
 from typing import List
-from datetime import datetime
+from datetime import date, datetime, time
 
 Base.metadata.create_all(bind=engine)
 
@@ -38,7 +35,7 @@ def registro(usuario: UsuarioCreate, db: Session = Depends(get_db)):
     return {"mensagem": "Usuário criado com sucesso"}
 
 
-@app.post("/login")
+@app.post("/login", response_model=Token)
 def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     usuario = db.query(models.Usuario).filter(models.Usuario.email == form.username).first()
     if not usuario or not verificar_senha(form.password, usuario.senha_hash):
@@ -72,7 +69,7 @@ def listar_transacoes(
 
 @app.get("/transacoes/tipo/{tipo}", response_model=List[TransacaoResponse])
 def filtrar_por_tipo(
-    tipo: str,
+    tipo: TipoTransacao,
     db: Session = Depends(get_db),
     usuario: models.Usuario = Depends(get_usuario_atual)
 ):
@@ -81,13 +78,13 @@ def filtrar_por_tipo(
 
 @app.get("/transacoes/periodo")
 def filtrar_por_periodo(
-    inicio: str,
-    fim: str,
+    inicio: date,
+    fim: date,
     db: Session = Depends(get_db),
     usuario: models.Usuario = Depends(get_usuario_atual)
 ):
-    data_inicio = datetime.strptime(inicio, "%Y-%m-%d")
-    data_fim = datetime.strptime(fim, "%Y-%m-%d")
+    data_inicio = datetime.combine(inicio, time.min)
+    data_fim = datetime.combine(fim, time.max)
     return db.query(models.Transacao).filter(
         models.Transacao.usuario_id == usuario.id,
         models.Transacao.criado_em >= data_inicio,
