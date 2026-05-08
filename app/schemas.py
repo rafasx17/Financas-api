@@ -6,7 +6,7 @@ class TransacaoCreate(BaseModel):
     descricao: str
     valor: float
     tipo: str
-    categoria: Optional[str] = None  # opcional, não precisa preencher
+    categoria: Optional[str] = None
 
 class TransacaoResponse(BaseModel):
     id: int
@@ -17,4 +17,20 @@ class TransacaoResponse(BaseModel):
     criado_em: datetime
 
     class Config:
-        from_attributes = True  # permite criar o schema a partir do modelo do banco (SQLAlchemy) usando os atributos do modelo
+        from_attributes = True
+
+class UsuarioCreate(BaseModel):
+    nome: str
+    email: str
+    senha: str
+
+class UsuarioResponse(BaseModel):
+    id: int
+    email: str
+
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

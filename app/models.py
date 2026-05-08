@@ -9,5 +9,13 @@ class Transacao(Base):
     descricao = Column(String, nullable=False)
     valor = Column(Float, nullable=False)
     tipo = Column(String, nullable=False)  # "receita" ou "despesa"
-    categoria = Column(String, nullable=True)  # ex: "alimentação", "salário"
+    categoria = Column(String, nullable=True)
     criado_em = Column(DateTime, default=datetime.now)
+
+class Usuario(Base):
+    __tablename__ = "usuarios"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    senha_hash = Column(String, nullable=False)
