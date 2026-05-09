@@ -66,6 +66,19 @@ def listar_transacoes(
 ):
     return db.query(models.Transacao).filter(models.Transacao.usuario_id == usuario.id).all()
 
+@app.get("/transacoes/{id}", response_model=TransacaoResponse)
+def buscar_transacao(
+    id: int,
+    db: Session = Depends(get_db),
+    usuario: models.Usuario = Depends(get_usuario_atual)
+):
+    transacao = db.query(models.Transacao).filter(
+        models.Transacao.id == id,
+        models.Transacao.usuario_id == usuario.id
+    ).first()
+    if not transacao:
+        raise HTTPException(status_code=404, detail="Transação não encontrada")
+    return transacao
 
 @app.get("/transacoes/tipo/{tipo}", response_model=List[TransacaoResponse])
 def filtrar_por_tipo(
@@ -76,7 +89,7 @@ def filtrar_por_tipo(
     return db.query(models.Transacao).filter(models.Transacao.usuario_id == usuario.id, models.Transacao.tipo == tipo).all()
 
 
-@app.get("/transacoes/periodo")
+@app.get("/transacoes/periodo", response_model=List[TransacaoResponse])
 def filtrar_por_periodo(
     inicio: date,
     fim: date,
@@ -129,6 +142,6 @@ def calcular_saldo(
     usuario: models.Usuario = Depends(get_usuario_atual)
 ):
     transacoes = db.query(models.Transacao).filter(models.Transacao.usuario_id == usuario.id).all()
-    receitas = sum(t.valor for t in transacoes if t.tipo == "receita")
-    despesas = sum(t.valor for t in transacoes if t.tipo == "despesa")
+    receitas = sum(t.valor for t in transacoes if t.tipo == TipoTransacao.receita)
+    despesas = sum(t.valor for t in transacoes if t.tipo == TipoTransacao.despesa)
     return {"receitas": receitas, "despesas": despesas, "saldo": receitas - despesas}
