@@ -151,6 +151,9 @@ def deletar_transacao(
     db.commit()
     return {"mensagem": "Transação deletada com sucesso"}
 
+
+# ── Resumos ───────────────────────────────────────────────────
+
 @app.get("/resumo/mensal")
 def resumo_mensal(
     db: Session = Depends(get_db),
@@ -171,6 +174,25 @@ def resumo_mensal(
         resumo[chave]["saldo"] = resumo[chave]["receitas"] - resumo[chave]["despesas"]
 
     return dict(sorted(resumo.items()))
+
+
+@app.get("/resumo/categorias")
+def resumo_por_categoria(
+    db: Session = Depends(get_db),
+    usuario: models.Usuario = Depends(get_usuario_atual)
+):
+    transacoes = db.query(models.Transacao).filter(
+        models.Transacao.usuario_id == usuario.id
+    ).all()
+
+    resumo = defaultdict(float)
+
+    for t in transacoes:
+        chave = t.categoria or "sem categoria"
+        resumo[chave] += t.valor
+
+    return dict(sorted(resumo.items()))
+
 
 @app.get("/saldo")
 def calcular_saldo(
