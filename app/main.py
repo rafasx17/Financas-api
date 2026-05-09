@@ -61,10 +61,14 @@ def criar_transacao(
 
 @app.get("/transacoes", response_model=List[TransacaoResponse])
 def listar_transacoes(
+    skip: int = 0,
+    limit: int = 10,
     db: Session = Depends(get_db),
     usuario: models.Usuario = Depends(get_usuario_atual)
 ):
-    return db.query(models.Transacao).filter(models.Transacao.usuario_id == usuario.id).all()
+    return db.query(models.Transacao).filter(
+        models.Transacao.usuario_id == usuario.id
+    ).offset(skip).limit(limit).all()
 
 
 @app.get("/transacoes/tipo/{tipo}", response_model=List[TransacaoResponse])
