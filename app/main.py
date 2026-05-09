@@ -7,6 +7,7 @@ from app.schemas import Token, TipoTransacao, TransacaoCreate, TransacaoResponse
 from app.auth import hash_senha, verificar_senha, criar_token, get_usuario_atual
 from typing import List
 from datetime import date, datetime, time
+from collections import defaultdict
 
 Base.metadata.create_all(bind=engine)
 
@@ -150,6 +151,26 @@ def deletar_transacao(
     db.commit()
     return {"mensagem": "Transação deletada com sucesso"}
 
+@app.get("/resumo/mensal")
+def resumo_mensal(
+    db: Session = Depends(get_db),
+    usuario: models.Usuario = Depends(get_usuario_atual)
+):
+    transacoes = db.query(models.Transacao).filter(
+        models.Transacao.usuario_id == usuario.id
+    ).all()
+
+    resumo = defaultdict(lambda: {"receitas": 0.0, "despesas": 0.0, "saldo": 0.0})
+
+    for t in transacoes:
+        chave = t.criado_em.strftime("%Y-%m")
+        if t.tipo == TipoTransacao.receita:
+            resumo[chave]["receitas"] += t.valor
+        else:
+            resumo[chave]["despesas"] += t.valor
+        resumo[chave]["saldo"] = resumo[chave]["receitas"] - resumo[chave]["despesas"]
+
+    return dict(sorted(resumo.items()))
 
 @app.get("/saldo")
 def calcular_saldo(
