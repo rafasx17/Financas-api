@@ -66,19 +66,6 @@ def listar_transacoes(
 ):
     return db.query(models.Transacao).filter(models.Transacao.usuario_id == usuario.id).all()
 
-@app.get("/transacoes/{id}", response_model=TransacaoResponse)
-def buscar_transacao(
-    id: int,
-    db: Session = Depends(get_db),
-    usuario: models.Usuario = Depends(get_usuario_atual)
-):
-    transacao = db.query(models.Transacao).filter(
-        models.Transacao.id == id,
-        models.Transacao.usuario_id == usuario.id
-    ).first()
-    if not transacao:
-        raise HTTPException(status_code=404, detail="Transação não encontrada")
-    return transacao
 
 @app.get("/transacoes/tipo/{tipo}", response_model=List[TransacaoResponse])
 def filtrar_por_tipo(
@@ -86,7 +73,10 @@ def filtrar_por_tipo(
     db: Session = Depends(get_db),
     usuario: models.Usuario = Depends(get_usuario_atual)
 ):
-    return db.query(models.Transacao).filter(models.Transacao.usuario_id == usuario.id, models.Transacao.tipo == tipo).all()
+    return db.query(models.Transacao).filter(
+        models.Transacao.usuario_id == usuario.id,
+        models.Transacao.tipo == tipo
+    ).all()
 
 
 @app.get("/transacoes/periodo", response_model=List[TransacaoResponse])
@@ -105,6 +95,21 @@ def filtrar_por_periodo(
     ).all()
 
 
+@app.get("/transacoes/{id}", response_model=TransacaoResponse)
+def buscar_transacao(
+    id: int,
+    db: Session = Depends(get_db),
+    usuario: models.Usuario = Depends(get_usuario_atual)
+):
+    transacao = db.query(models.Transacao).filter(
+        models.Transacao.id == id,
+        models.Transacao.usuario_id == usuario.id
+    ).first()
+    if not transacao:
+        raise HTTPException(status_code=404, detail="Transação não encontrada")
+    return transacao
+
+
 @app.put("/transacoes/{id}", response_model=TransacaoResponse)
 def atualizar_transacao(
     id: int,
@@ -112,7 +117,10 @@ def atualizar_transacao(
     db: Session = Depends(get_db),
     usuario: models.Usuario = Depends(get_usuario_atual)
 ):
-    db_transacao = db.query(models.Transacao).filter(models.Transacao.id == id, models.Transacao.usuario_id == usuario.id).first()
+    db_transacao = db.query(models.Transacao).filter(
+        models.Transacao.id == id,
+        models.Transacao.usuario_id == usuario.id
+    ).first()
     if not db_transacao:
         raise HTTPException(status_code=404, detail="Transação não encontrada")
     for key, value in transacao.model_dump().items():
@@ -128,7 +136,10 @@ def deletar_transacao(
     db: Session = Depends(get_db),
     usuario: models.Usuario = Depends(get_usuario_atual)
 ):
-    transacao = db.query(models.Transacao).filter(models.Transacao.id == id, models.Transacao.usuario_id == usuario.id).first()
+    transacao = db.query(models.Transacao).filter(
+        models.Transacao.id == id,
+        models.Transacao.usuario_id == usuario.id
+    ).first()
     if not transacao:
         raise HTTPException(status_code=404, detail="Transação não encontrada")
     db.delete(transacao)
