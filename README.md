@@ -1,6 +1,7 @@
 # Finacas API
 
 API REST para gerenciamento de finanças pessoais com autenticação JWT e isolamento de dados por usuário.
+**API em produção:** https://financas-api-production-40db.up.railway.app/docs
 
 ## Stack
 
